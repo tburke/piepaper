@@ -3,9 +3,6 @@ package main
 import (
 	"encoding/csv"
 	"errors"
-	"github.com/llgcode/draw2d"
-	"github.com/llgcode/draw2d/draw2dimg"
-	"github.com/llgcode/draw2d/draw2dkit"
 	"io"
 	"log"
 	"math"
@@ -16,6 +13,11 @@ import (
 
 	"./netpbm"
 	"golang.org/x/image/draw"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/gomedium"
+	"github.com/golang/freetype/truetype"
+	"golang.org/x/image/math/fixed"
+
 	"image"
 	"image/color"
 )
@@ -118,22 +120,25 @@ func epd_write(i image.Image) {
 }
 
 func show_data(name, value string) image.Image {
-	draw2d.SetFontFolder("/usr/share/fonts/truetype/roboto/")
 	i := image.NewRGBA(image.Rect(0, 0, 264, 176))
 	draw.Src.Draw(i, i.Bounds(), image.White, image.ZP)
-	gc := draw2dimg.NewGraphicContext(i)
-	gc.Save()
-	gc.SetStrokeColor(color.Black)
-	gc.SetFillColor(color.Black)
-	draw2dkit.Rectangle(gc, 10, 10, 50, 50)
-	gc.FillStroke()
+	tt, err := truetype.Parse(gomedium.TTF)
+	face := truetype.NewFace(tt, &truetype.Options{
+			Size:    52,
+			Hinting: font.HintingNone,
+			DPI:     72,
+		})
 
-	gc.SetFontData(draw2d.FontData{Name: "Roboto", Family: draw2d.FontFamilyMono, Style: draw2d.FontStyleNormal})
-	gc.SetFontSize(52)
-	gc.FillStringAt(name, 60, 80)
-	gc.FillStringAt(value, 60, 160)
+	d := &font.Drawer{
+		Dst: i,
+		Src: image.Black,
+		Face: face,
+	}
+	d.Dot = fixed.P(60,80)
+	d.DrawString(name)
+	d.Dot = fixed.P(60,160)
+	d.DrawString(value)
 
-	gc.Restore()
 	return i
 }
 
