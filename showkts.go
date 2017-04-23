@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"./netpbm"
+	"github.com/tburke/netpbm"
 	"golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gomedium"
