@@ -4,8 +4,6 @@ import (
 	"encoding/csv"
 	"errors"
 	"io"
-	"log"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -19,7 +17,6 @@ import (
 	"golang.org/x/image/math/fixed"
 
 	"image"
-	"image/color"
 )
 
 type Point [2]float64
@@ -27,15 +24,15 @@ type Point [2]float64
 func DegmintoFloat(val string, dir string) float64 {
 	p := strings.Index(val, ".")
 	if p < 2 {
-		return math.NaN()
+		return 0
 	}
 	deg, err := strconv.ParseFloat(val[0:p-2], 64)
 	if err != nil {
-		return math.NaN()
+		return 0
 	}
 	min, err := strconv.ParseFloat(val[p-2:], 64)
 	if err != nil {
-		return math.NaN()
+		return 0
 	}
 	deg += min / 60
 	if dir[0] == 'S' || dir[0] == 'W' {
@@ -122,7 +119,7 @@ func epd_write(i image.Image) {
 func show_data(name, value string) image.Image {
 	i := image.NewRGBA(image.Rect(0, 0, 264, 176))
 	draw.Src.Draw(i, i.Bounds(), image.White, image.ZP)
-	tt, err := truetype.Parse(gomedium.TTF)
+	tt, _ := truetype.Parse(gomedium.TTF)
 	face := truetype.NewFace(tt, &truetype.Options{
 			Size:    52,
 			Hinting: font.HintingNone,
@@ -142,7 +139,7 @@ func show_data(name, value string) image.Image {
 	return i
 }
 
-func show_speed() {
+func show_speed() error {
 	f, _ := os.Open("/dev/ttyUSB0")
 	r := csv.NewReader(f)
 	r.FieldsPerRecord = -1
@@ -152,7 +149,7 @@ func show_speed() {
 			break
 		}
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 		if rec[0] == "$GPRMC" {
 			var g GPRMC
@@ -163,6 +160,7 @@ func show_speed() {
 		}
 	}
 	f.Close()
+	return nil
 }
 
 func main() {
