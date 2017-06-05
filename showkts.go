@@ -3,17 +3,18 @@ package main
 import (
 	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/tburke/netpbm"
 	"golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gomedium"
-	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/math/fixed"
 
 	"image"
@@ -100,20 +101,21 @@ func (g *GPRMC) FromNMEA(s []string) error {
 	return nil
 }
 
-func epd_write(i image.Image) {
+func epd_write(i image.Image) error {
 	cmd, err := os.OpenFile("/dev/epd/command", os.O_RDWR, 0666)
 	if err != nil {
-		return
+		return err
 	}
 	img, err := os.OpenFile("/dev/epd/LE/display", os.O_RDWR, 0666)
 	if err != nil {
-		return
+		return err
 	}
 	cmd.Write([]byte("C"))
 	netpbm.PbmData(img, i)
 	cmd.Write([]byte("P"))
 	img.Close()
 	cmd.Close()
+	return nil
 }
 
 func show_data(name, value string) image.Image {
@@ -121,19 +123,19 @@ func show_data(name, value string) image.Image {
 	draw.Src.Draw(i, i.Bounds(), image.White, image.ZP)
 	tt, _ := truetype.Parse(gomedium.TTF)
 	face := truetype.NewFace(tt, &truetype.Options{
-			Size:    52,
-			Hinting: font.HintingNone,
-			DPI:     72,
-		})
+		Size:    52,
+		Hinting: font.HintingNone,
+		DPI:     72,
+	})
 
 	d := &font.Drawer{
-		Dst: i,
-		Src: image.Black,
+		Dst:  i,
+		Src:  image.Black,
 		Face: face,
 	}
-	d.Dot = fixed.P(60,80)
+	d.Dot = fixed.P(60, 80)
 	d.DrawString(name)
-	d.Dot = fixed.P(60,160)
+	d.Dot = fixed.P(60, 160)
 	d.DrawString(value)
 
 	return i
@@ -166,6 +168,15 @@ func show_speed() error {
 func main() {
 	for {
 		show_speed()
+		/*
+			fmt.Println("Show data")
+			img := show_data("Speed", "6.3")
+			fmt.Println("Write image")
+			err := epd_write(img)
+		*/
+		if err != nil {
+			fmt.Println(err)
+		}
 		time.Sleep(1 * time.Minute)
 	}
 }
