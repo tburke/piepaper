@@ -183,6 +183,7 @@ func main() {
 }
 
 /*
+https://github.com/tarm/serial/blob/master/serial_linux.go
 Set baud
 cflagToUse := syscall.CREAD | syscall.CLOCAL | syscall.B4800
 t := syscall.Termios{
