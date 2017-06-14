@@ -153,6 +153,7 @@ func show_speed() error {
 		if err != nil {
 			return err
 		}
+		fmt.Printf("USB0 Read: %v\n", rec)
 		if rec[0] == "$GPRMC" {
 			var g GPRMC
 			g.FromNMEA(rec)
@@ -167,7 +168,7 @@ func show_speed() error {
 
 func main() {
 	for {
-		show_speed()
+		err := show_speed()
 		/*
 			fmt.Println("Show data")
 			img := show_data("Speed", "6.3")
@@ -180,3 +181,28 @@ func main() {
 		time.Sleep(1 * time.Minute)
 	}
 }
+
+/*
+Set baud
+cflagToUse := syscall.CREAD | syscall.CLOCAL | syscall.B4800
+t := syscall.Termios{
+		Iflag:  syscall.IGNPAR,
+		Cflag:  cflagToUse,
+		Cc:     [32]uint8{syscall.VMIN: vmin, syscall.VTIME: vtime},
+		Ispeed: syscall.B4800,
+		Ospeed: syscall.B4800,
+	}
+
+if _, _, errno := syscall.Syscall6(
+		syscall.SYS_IOCTL,
+		uintptr(fd),
+		uintptr(syscall.TCSETS),
+		uintptr(unsafe.Pointer(&t)),
+		0,
+		0,
+		0,
+	); errno != 0 {
+		return nil, errno
+	}
+
+*/
