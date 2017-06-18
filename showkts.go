@@ -8,7 +8,9 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
+	"unsafe"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/tburke/netpbm"
@@ -143,6 +145,7 @@ func show_data(name, value string) image.Image {
 
 func show_speed() error {
 	f, _ := os.Open("/dev/ttyUSB0")
+	setbaud(f.Fd())
 	r := csv.NewReader(f)
 	r.FieldsPerRecord = -1
 	for {
@@ -164,6 +167,31 @@ func show_speed() error {
 	}
 	f.Close()
 	return nil
+}
+
+func setbaud(fd uintptr) error {
+	t := syscall.Termios{}
+
+	_, _, errno := syscall.Syscall6(
+		syscall.SYS_IOCTL,
+		fd,
+		uintptr(syscall.TCGETS),
+		uintptr(unsafe.Pointer(&t)),
+		0,
+		0,
+		0,
+	)
+	t.Cflag = 0xcbc
+	_, _, errno = syscall.Syscall6(
+		syscall.SYS_IOCTL,
+		fd,
+		uintptr(syscall.TCSETS),
+		uintptr(unsafe.Pointer(&t)),
+		0,
+		0,
+		0,
+	)
+	return errno
 }
 
 func main() {
